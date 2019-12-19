@@ -12,6 +12,7 @@ serde = "1.0.104"
 failure = "0.1.6"
 rocket = "0.4.2"
 config = "0.10.1"
+textwrap = "0.11.0"
 
 [dependencies.rocket_contrib]
 version = "0.4.2"
