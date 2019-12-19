@@ -1,0 +1,19 @@
+[package]
+name = "pyportal_backend"
+version = "0.1.0"
+authors = ["Vivian Lim <vivvnlim@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = "0.9.24"
+serde = "1.0.104"
+failure = "0.1.6"
+rocket = "0.4.2"
+config = "0.10.1"
+
+[dependencies.rocket_contrib]
+version = "0.4.2"
+default-features = false
+features = ["json"]
