@@ -4,6 +4,8 @@
 #[macro_use] extern crate failure;
 
 extern crate config;
+extern crate chrono;
+use chrono::{Local};
 extern crate textwrap;
 use textwrap::fill;
 
@@ -15,6 +17,8 @@ use failure::Error;
 
 use std::sync::Mutex;
 use std::ops::DerefMut;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 
 mod settings;
 use settings::Settings;
@@ -35,6 +39,15 @@ struct PyPortal {
 }
 
 fn get_backlight_for_light_sensor(light_sensor: u32) -> f32 {
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open("light_sensor.csv")
+        .unwrap();
+
+    if let Err(e) = writeln!(file, "{},{}", Local::now(), light_sensor) {
+        eprintln!("Couldn't write sensor data to file {}", e);
+    }
+
     if light_sensor > 700 {
         return 0.5;
     }
