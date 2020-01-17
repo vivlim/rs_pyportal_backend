@@ -28,13 +28,12 @@ mod trello;
 struct Context {
     board_id: Option<String>,
     settings: Settings,
-    list_index: Mutex<usize>,
+    card_index: Mutex<usize>,
 }
 
 #[derive(Serialize, Debug)]
 struct PyPortal {
     text: String,
-    title: String,
     backlight: f32,
 }
 
@@ -59,29 +58,26 @@ fn index(lines: usize, line_len: usize, light_sensor: u32, context: State<Contex
     match &context.board_id {
         Some(id) => {
             let lists = trello::get_lists_for_board(&id, &context.settings).unwrap();
+            let list = &lists[1];
 
-            let mut list_index_lock = context.list_index.lock().expect("lock context");
-            let list = &lists[*list_index_lock];
+            let mut card_index_lock = context.card_index.lock().expect("lock context");
+            let card = &list.cards[*card_index_lock];
 
             // next request, return the next list
-            *list_index_lock.deref_mut() = (*list_index_lock + 1) % lists.len();
+            *card_index_lock.deref_mut() = (*card_index_lock + 1) % list.cards.len();
 
-            let mut printable_card_list = list.cards.iter().map(|card| format!("* {}", card.name)).collect::<Vec<String>>().join("\n");
-            printable_card_list = fill(&printable_card_list, line_len);
-
+            let mut printable_card = fill(&card.name, line_len);
 
             // take only # lines
-            printable_card_list = printable_card_list.split("\n").take(lines).collect::<Vec<&str>>().join("\n");
+            printable_card = printable_card.split("\n").take(lines).collect::<Vec<&str>>().join("\n");
 
             Json(PyPortal {
-                text: printable_card_list,
-                title: list.name.clone(),
+                text: printable_card,
                 backlight: get_backlight_for_light_sensor(light_sensor),
             })
         },
         None => Json(PyPortal {
             text: String::from("couldn't get board id"),
-            title: String::from("error"),
             backlight: get_backlight_for_light_sensor(light_sensor),
         })
     }
@@ -99,7 +95,7 @@ fn main() {
                 }
         },
         settings: settings,
-        list_index: Mutex::new(0),
+        card_index: Mutex::new(0),
     };
 
     println!("Hello, world!");
